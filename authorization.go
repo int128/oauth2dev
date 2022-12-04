@@ -83,9 +83,9 @@ func (err AuthorizationErrorResponse) Error() string {
 func Authorize(ctx context.Context, cfg oauth2.Config) (*AuthorizationResponse, error) {
 	// Device Authorization Request,
 	// described in https://www.rfc-editor.org/rfc/rfc8628#section-3.1
-	params := url.Values{
-		"client_id": {cfg.ClientID},
-		"scope":     {strings.Join(cfg.Scopes, " ")},
+	params := url.Values{"client_id": {cfg.ClientID}}
+	if len(cfg.Scopes) > 0 {
+		params.Set("scope", strings.Join(cfg.Scopes, " "))
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.Endpoint.AuthURL, strings.NewReader(params.Encode()))
 	if err != nil {
