@@ -1,5 +1,5 @@
 // Package oauth2dev is an implementation of OAuth 2.0 Device Authorization Grant,
-// described in RFC8628 https://www.rfc-editor.org/rfc/rfc8628.
+// described in RFC 8628 https://www.rfc-editor.org/rfc/rfc8628.
 package oauth2dev
 
 import (

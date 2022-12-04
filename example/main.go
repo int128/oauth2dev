@@ -1,5 +1,14 @@
 // An example for Google OAuth 2.0 for TV and Limited-Input Device Applications,
 // described in https://developers.google.com/identity/protocols/oauth2/limited-input-device
+//
+// To run this example,
+//
+//	CLIENT_ID=your-client-id CLIENT_SECRET=your-client-secret go run ./example
+//
+// You need to create an OAuth client before running this example.
+// Open the Google Cloud console https://console.cloud.google.com/apis/credentials,
+// create an OAuth client ID with "Limited Input devices",
+// and then get the client ID and secret.
 package main
 
 import (
