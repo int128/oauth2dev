@@ -1,0 +1,54 @@
+name: go
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/go.yaml
+      - go.*
+      - '**/*.go'
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/go.yaml
+      - go.*
+      - '**/*.go'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.3
+          cache: true
+      - uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.50.1
+
+  tidy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.3
+          cache: true
+      - run: go mod tidy
+      - uses: int128/update-generated-files-action@v2
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.3
+          cache: true
+      - run: go test -v ./...
