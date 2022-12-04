@@ -2,6 +2,7 @@ package oauth2dev
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -68,6 +69,47 @@ func TestAuthorize(t *testing.T) {
 		}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("authorization response mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("error response", func(t *testing.T) {
+		m := http.NewServeMux()
+		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
+			// Error Response
+			// https://www.rfc-editor.org/rfc/rfc6749#section-5.2
+			w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+			w.WriteHeader(400)
+			_, err := io.WriteString(w, `{
+  "error":"invalid_request"
+}`)
+			if err != nil {
+				t.Errorf("http write error: %s", err)
+			}
+		})
+		sv := httptest.NewServer(m)
+		defer sv.Close()
+
+		cfg := oauth2.Config{
+			ClientID: "oauth2dev-client-id",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  sv.URL + "/auth",
+				TokenURL: sv.URL + "/token",
+			},
+		}
+		_, err := Authorize(context.TODO(), cfg)
+		if err == nil {
+			t.Fatalf("authorize error: %s", err)
+		}
+		var eresp AuthorizationErrorResponse
+		if !errors.As(err, &eresp) {
+			t.Fatalf("error is not AuthorizationErrorResponse: %s", err)
+		}
+		want := AuthorizationErrorResponse{
+			StatusCode: 400,
+			ErrorCode:  "invalid_request",
+		}
+		if diff := cmp.Diff(want, eresp); diff != "" {
+			t.Errorf("error response mismatch (-want +got):\n%s", diff)
 		}
 	})
 }
