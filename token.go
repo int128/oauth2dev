@@ -117,10 +117,12 @@ func PostTokenRequest(ctx context.Context, cfg oauth2.Config, deviceCode string)
 	// Device Access Token Request,
 	// described in https://www.rfc-editor.org/rfc/rfc8628#section-3.4
 	params := url.Values{
-		"client_id":     {cfg.ClientID},
-		"client_secret": {cfg.ClientSecret},
-		"device_code":   {deviceCode},
-		"grant_type":    {"urn:ietf:params:oauth:grant-type:device_code"},
+		"client_id":   {cfg.ClientID},
+		"device_code": {deviceCode},
+		"grant_type":  {"urn:ietf:params:oauth:grant-type:device_code"},
+	}
+	if cfg.ClientSecret != "" {
+		params.Set("client_secret", cfg.ClientSecret)
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.Endpoint.TokenURL, strings.NewReader(params.Encode()))
 	if err != nil {
