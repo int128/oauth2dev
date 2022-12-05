@@ -14,11 +14,9 @@ import (
 )
 
 func TestAuthorize(t *testing.T) {
-	t.Run("success authorization response", func(t *testing.T) {
+	t.Run("successful response", func(t *testing.T) {
 		m := http.NewServeMux()
 		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
-			// Device Authorization Request
-			// https://www.rfc-editor.org/rfc/rfc8628#section-3.1
 			if r.Method != "POST" {
 				t.Errorf("method wants %s but was %s", "POST", r.Method)
 			}
@@ -30,8 +28,7 @@ func TestAuthorize(t *testing.T) {
 				t.Errorf("form mismatch (-want +got):\n%s", diff)
 			}
 
-			// Device Authorization Response
-			// https://www.rfc-editor.org/rfc/rfc8628#section-3.1
+			// the example response in https://www.rfc-editor.org/rfc/rfc8628#section-3.1
 			w.Header().Set("Content-Type", "application/json")
 			_, err := io.WriteString(w, `{
   "device_code": "GmRhmhcxhwAzkoEqiMEg_DnyEysNkuNhszIySk9eS",
@@ -59,6 +56,7 @@ func TestAuthorize(t *testing.T) {
 		if err != nil {
 			t.Fatalf("authorize error: %s", err)
 		}
+		// the example response in https://www.rfc-editor.org/rfc/rfc8628#section-3.1
 		want := &AuthorizationResponse{
 			DeviceCode:              "GmRhmhcxhwAzkoEqiMEg_DnyEysNkuNhszIySk9eS",
 			UserCode:                "WDJB-MJHT",
@@ -75,8 +73,7 @@ func TestAuthorize(t *testing.T) {
 	t.Run("error response", func(t *testing.T) {
 		m := http.NewServeMux()
 		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
-			// Error Response
-			// https://www.rfc-editor.org/rfc/rfc6749#section-5.2
+			// the example response in https://www.rfc-editor.org/rfc/rfc6749#section-5.2
 			w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 			w.WriteHeader(400)
 			_, err := io.WriteString(w, `{
@@ -98,7 +95,7 @@ func TestAuthorize(t *testing.T) {
 		}
 		_, err := Authorize(context.TODO(), cfg)
 		if err == nil {
-			t.Fatalf("authorize error: %s", err)
+			t.Fatalf("authorize error was nil")
 		}
 		var eresp AuthorizationErrorResponse
 		if !errors.As(err, &eresp) {
