@@ -13,7 +13,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func TestAuthorize(t *testing.T) {
+func TestRetrieveCode(t *testing.T) {
 	t.Run("successful response", func(t *testing.T) {
 		m := http.NewServeMux()
 		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func TestAuthorize(t *testing.T) {
 				TokenURL: sv.URL + "/token",
 			},
 		}
-		got, err := Authorize(context.TODO(), cfg)
+		got, err := RetrieveCode(context.TODO(), cfg)
 		if err != nil {
 			t.Fatalf("authorize error: %s", err)
 		}
@@ -93,7 +93,7 @@ func TestAuthorize(t *testing.T) {
 				TokenURL: sv.URL + "/token",
 			},
 		}
-		_, err := Authorize(context.TODO(), cfg)
+		_, err := RetrieveCode(context.TODO(), cfg)
 		if err == nil {
 			t.Fatalf("authorize error was nil")
 		}

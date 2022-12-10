@@ -13,7 +13,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func TestPostTokenRequest(t *testing.T) {
+func TestRetrieveToken(t *testing.T) {
 	t.Run("successful response", func(t *testing.T) {
 		m := http.NewServeMux()
 		m.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +63,7 @@ func TestPostTokenRequest(t *testing.T) {
 			},
 		}
 		const deviceCode = "GmRhmhcxhwAzkoEqiMEg_DnyEysNkuNhszIySk9eS"
-		got, err := PostTokenRequest(context.TODO(), cfg, deviceCode)
+		got, err := RetrieveToken(context.TODO(), cfg, deviceCode)
 		if err != nil {
 			t.Fatalf("authorize error: %s", err)
 		}
@@ -109,7 +109,7 @@ func TestPostTokenRequest(t *testing.T) {
 				TokenURL: sv.URL + "/token",
 			},
 		}
-		_, err := PostTokenRequest(context.TODO(), cfg, "oauth2dev-device-code")
+		_, err := RetrieveToken(context.TODO(), cfg, "oauth2dev-device-code")
 		if err == nil {
 			t.Fatalf("token error was nil")
 		}

@@ -78,7 +78,7 @@ const (
 func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse) (*oauth2.Token, error) {
 	interval := ar.IntervalDuration()
 	for {
-		tokenResponse, err := PostTokenRequest(ctx, cfg, ar.DeviceCode)
+		tokenResponse, err := RetrieveToken(ctx, cfg, ar.DeviceCode)
 		if err != nil {
 			var eresp TokenErrorResponse
 			if errors.As(err, &eresp) {
@@ -112,8 +112,11 @@ func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse)
 	}
 }
 
-// PostTokenRequest sends a token request to the endpoint.
-func PostTokenRequest(ctx context.Context, cfg oauth2.Config, deviceCode string) (*TokenResponse, error) {
+// RetrieveToken sends a token request to the endpoint.
+// If it received a successful response, it returns the TokenResponse.
+// If it received an error response JSON, it returns an TokenErrorResponse.
+// Otherwise, it returns an error wrapped with the cause.
+func RetrieveToken(ctx context.Context, cfg oauth2.Config, deviceCode string) (*TokenResponse, error) {
 	// Device Access Token Request,
 	// described in https://www.rfc-editor.org/rfc/rfc8628#section-3.4
 	params := url.Values{

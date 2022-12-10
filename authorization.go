@@ -76,11 +76,11 @@ func (err AuthorizationErrorResponse) Error() string {
 	return fmt.Sprintf("authorization error response %d, %s (%s)", err.StatusCode, err.ErrorCode, err.ErrorDescription)
 }
 
-// Authorize sends an authorization request to the authorization endpoint.
+// RetrieveCode sends an authorization request to the authorization endpoint.
 // If it received a successful response, it returns the AuthorizationResponse.
 // If it received an error response JSON, it returns an AuthorizationErrorResponse.
 // Otherwise, it returns an error wrapped with the cause.
-func Authorize(ctx context.Context, cfg oauth2.Config) (*AuthorizationResponse, error) {
+func RetrieveCode(ctx context.Context, cfg oauth2.Config) (*AuthorizationResponse, error) {
 	// Device Authorization Request,
 	// described in https://www.rfc-editor.org/rfc/rfc8628#section-3.1
 	params := url.Values{"client_id": {cfg.ClientID}}
