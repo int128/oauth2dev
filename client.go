@@ -23,5 +23,6 @@ func GetToken(ctx context.Context, cfg oauth2.Config, h HandleAuthorizationRespo
 	if err != nil {
 		return nil, fmt.Errorf("poll token: %w", err)
 	}
-	return token, nil
+	oauth2Token := token.Token()
+	return &oauth2Token, nil
 }
