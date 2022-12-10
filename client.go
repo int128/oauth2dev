@@ -14,7 +14,7 @@ type HandleAuthorizationResponseFunc func(response AuthorizationResponse)
 
 // GetToken sends an authorization request and then polls the token response.
 func GetToken(ctx context.Context, cfg oauth2.Config, h HandleAuthorizationResponseFunc) (*oauth2.Token, error) {
-	authorizationResponse, err := Authorize(ctx, cfg)
+	authorizationResponse, err := RetrieveCode(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("authorization request: %w", err)
 	}
