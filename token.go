@@ -75,7 +75,7 @@ const (
 // PollToken tries a token request and waits until it receives a token response.
 // It polls by the interval described in https://www.rfc-editor.org/rfc/rfc8628#section-3.5.
 // When the context is done, this function immediately returns the context error.
-func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse) (*oauth2.Token, error) {
+func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse) (*TokenResponse, error) {
 	interval := ar.IntervalDuration()
 	for {
 		tokenResponse, err := RetrieveToken(ctx, cfg, ar.DeviceCode)
@@ -107,8 +107,7 @@ func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse)
 			}
 			return nil, fmt.Errorf("token request: %w", err)
 		}
-		token := tokenResponse.Token()
-		return &token, nil
+		return tokenResponse, nil
 	}
 }
 
