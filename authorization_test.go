@@ -70,6 +70,44 @@ func TestRetrieveCode(t *testing.T) {
 		}
 	})
 
+	t.Run("client-secret", func(t *testing.T) {
+		m := http.NewServeMux()
+		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "POST" {
+				t.Errorf("method wants %s but was %s", "POST", r.Method)
+			}
+			if err := r.ParseForm(); err != nil {
+				t.Errorf("parse form error: %s", err)
+			}
+			want := url.Values{"client_id": {"oauth2dev-client-id"}, "client_secret": {"oauth2dev-client-secret"}, "scope": {"email openid"}}
+			if diff := cmp.Diff(want, r.PostForm); diff != "" {
+				t.Errorf("form mismatch (-want +got):\n%s", diff)
+			}
+			// the example response in https://www.rfc-editor.org/rfc/rfc8628#section-3.1
+			w.Header().Set("Content-Type", "application/json")
+			_, err := io.WriteString(w, `{}`)
+			if err != nil {
+				t.Errorf("http write error: %s", err)
+			}
+		})
+		sv := httptest.NewServer(m)
+		defer sv.Close()
+
+		cfg := oauth2.Config{
+			ClientID:     "oauth2dev-client-id",
+			ClientSecret: "oauth2dev-client-secret",
+			Scopes:       []string{"email", "openid"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  sv.URL + "/auth",
+				TokenURL: sv.URL + "/token",
+			},
+		}
+		_, err := RetrieveCode(context.TODO(), cfg)
+		if err != nil {
+			t.Fatalf("authorize error: %s", err)
+		}
+	})
+
 	t.Run("error response", func(t *testing.T) {
 		m := http.NewServeMux()
 		m.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
