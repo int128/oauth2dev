@@ -87,6 +87,9 @@ func RetrieveCode(ctx context.Context, cfg oauth2.Config) (*AuthorizationRespons
 	if len(cfg.Scopes) > 0 {
 		params.Set("scope", strings.Join(cfg.Scopes, " "))
 	}
+	if cfg.ClientSecret != "" {
+		params.Set("client_secret", cfg.ClientSecret)
+	}
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.Endpoint.AuthURL, strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("unable to create a request: %w", err)
