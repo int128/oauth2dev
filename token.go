@@ -15,9 +15,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// TokenResponse represents the successful response type,
+// tokenResponse represents the successful response type,
 // described in https://www.rfc-editor.org/rfc/rfc6749#section-5.1
-type TokenResponse struct {
+type tokenResponse struct {
 	// AccessToken is the token that authorizes and authenticates
 	// the requests.
 	AccessToken string `json:"access_token"`
@@ -33,20 +33,24 @@ type TokenResponse struct {
 
 	// The lifetime in seconds of the access token.
 	ExpiresIn int `json:"expires_in,omitempty"`
+
+	// Raw optionally contains extra metadata from the server
+	// when updating a token.
+	Raw interface{}
 }
 
-func (tr TokenResponse) Expiry() time.Time {
+func (tr tokenResponse) Expiry() time.Time {
 	return time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second)
 }
 
 // Token returns the corresponding oauth2.Token
-func (tr TokenResponse) Token() oauth2.Token {
-	return oauth2.Token{
+func (tr tokenResponse) Token() *oauth2.Token {
+	return (&oauth2.Token{
 		AccessToken:  tr.AccessToken,
 		TokenType:    tr.TokenType,
 		RefreshToken: tr.RefreshToken,
 		Expiry:       tr.Expiry(),
-	}
+	}).WithExtra(tr.Raw)
 }
 
 // TokenErrorResponse represents an error response,
@@ -75,7 +79,7 @@ const (
 // PollToken tries a token request and waits until it receives a token response.
 // It polls by the interval described in https://www.rfc-editor.org/rfc/rfc8628#section-3.5.
 // When the context is done, this function immediately returns the context error.
-func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse) (*TokenResponse, error) {
+func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse) (*oauth2.Token, error) {
 	interval := ar.IntervalDuration()
 	for {
 		tokenResponse, err := RetrieveToken(ctx, cfg, ar.DeviceCode)
@@ -112,10 +116,10 @@ func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse)
 }
 
 // RetrieveToken sends a token request to the endpoint.
-// If it received a successful response, it returns the TokenResponse.
+// If it received a successful response, it returns the oauth2.Token.
 // If it received an error response JSON, it returns an TokenErrorResponse.
 // Otherwise, it returns an error wrapped with the cause.
-func RetrieveToken(ctx context.Context, cfg oauth2.Config, deviceCode string) (*TokenResponse, error) {
+func RetrieveToken(ctx context.Context, cfg oauth2.Config, deviceCode string) (*oauth2.Token, error) {
 	// Device Access Token Request,
 	// described in https://www.rfc-editor.org/rfc/rfc8628#section-3.4
 	params := url.Values{
@@ -149,10 +153,17 @@ func RetrieveToken(ctx context.Context, cfg oauth2.Config, deviceCode string) (*
 		return nil, eresp
 	}
 
-	d := json.NewDecoder(resp.Body)
-	var tresp TokenResponse
-	if err := d.Decode(&tresp); err != nil {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response body: %w", err)
+	}
+	var tresp tokenResponse
+	if err := json.Unmarshal(body, &tresp); err != nil {
 		return nil, fmt.Errorf("unable to parse the authorization response: %w", err)
 	}
-	return &tresp, nil
+	tresp.Raw = make(map[string]interface{})
+	if err := json.Unmarshal(body, &tresp.Raw); err != nil {
+		return nil, fmt.Errorf("unable to parse the raw authorization response: %w", err)
+	}
+	return tresp.Token(), nil
 }

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/oauth2"
@@ -67,14 +68,23 @@ func TestRetrieveToken(t *testing.T) {
 		if err != nil {
 			t.Fatalf("authorize error: %s", err)
 		}
-		want := &TokenResponse{
+		want := (&oauth2.Token{
 			AccessToken:  "2YotnFZFEjr1zCsicMWpAA",
 			TokenType:    "example",
 			RefreshToken: "tGzv3JOkF0XG5Qx2TlKWIA",
-			ExpiresIn:    3600,
-		}
-		if diff := cmp.Diff(want, got); diff != "" {
+			Expiry:       got.Expiry, // we have to overwrite this, as we won't be precise enough with time.Now().Add(3600 * time.Second)
+		}).WithExtra(map[string]any{
+			"access_token":      string("2YotnFZFEjr1zCsicMWpAA"),
+			"example_parameter": string("example_value"),
+			"expires_in":        float64(3600),
+			"refresh_token":     string("tGzv3JOkF0XG5Qx2TlKWIA"),
+			"token_type":        string("example"),
+		})
+		if diff := cmp.Diff(want, got, cmp.AllowUnexported(oauth2.Token{})); diff != "" {
 			t.Errorf("token response mismatch (-want +got):\n%s", diff)
+		}
+		if time.Until(got.Expiry) > (3600*time.Second) || time.Until(got.Expiry) < (3590*time.Second) {
+			t.Errorf("token response mismatch, expiry is too far away:\n%s", time.Until(got.Expiry))
 		}
 	})
 
