@@ -1,8 +1,6 @@
 module github.com/int128/oauth2dev/tools
 
-go 1.23.0
-
-toolchain go1.24.0
+go 1.24.0
 
 tool github.com/golangci/golangci-lint/cmd/golangci-lint
 
