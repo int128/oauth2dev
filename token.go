@@ -141,7 +141,7 @@ func RetrieveToken(ctx context.Context, cfg oauth2.Config, deviceCode string) (*
 	if err != nil {
 		return nil, fmt.Errorf("unable to send an authorization request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != 200 {
 		b, _ := io.ReadAll(resp.Body)
 		var eresp TokenErrorResponse
