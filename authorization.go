@@ -101,7 +101,7 @@ func RetrieveCode(ctx context.Context, cfg oauth2.Config) (*AuthorizationRespons
 	if err != nil {
 		return nil, fmt.Errorf("unable to send the request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != 200 {
 		b, _ := io.ReadAll(resp.Body)
 		var eresp AuthorizationErrorResponse
