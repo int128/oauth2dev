@@ -6,5 +6,5 @@ toolchain go1.25.3
 
 require (
 	github.com/google/go-cmp v0.7.0
-	golang.org/x/oauth2 v0.32.0
+	golang.org/x/oauth2 v0.33.0
 )
