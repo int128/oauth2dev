@@ -90,6 +90,7 @@ func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse)
 					// the client MUST wait at least the number of seconds specified by
 					// the "interval" parameter of the device authorization response
 					// https://www.rfc-editor.org/rfc/rfc8628#section-3.5
+					interval := ar.IntervalDuration()
 					select {
 					case <-time.After(interval):
 						continue
@@ -107,6 +108,21 @@ func PollToken(ctx context.Context, cfg oauth2.Config, ar AuthorizationResponse)
 					case <-ctx.Done():
 						return nil, ctx.Err()
 					}
+				}
+			}
+
+			// On encountering a connection timeout, clients MUST unilaterally
+			// reduce their polling frequency before retrying. The use of an
+			// exponential backoff algorithm to achieve this, such as doubling the
+			// polling interval on each such connection timeout, is RECOMMENDED.
+			// https://www.rfc-editor.org/rfc/rfc8628#section-3.5
+			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+				interval *= 2
+				select {
+				case <-time.After(interval):
+					continue
+				case <-ctx.Done():
+					return nil, ctx.Err()
 				}
 			}
 			return nil, fmt.Errorf("token request: %w", err)
